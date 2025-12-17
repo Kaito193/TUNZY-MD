@@ -5,10 +5,10 @@ const path = require('path');
 async function helpCommand(sock, chatId, message) {
     const helpMessage = `
 ━━━━━━━━━━━━━━━━━┈⊷
- ${settings.botName || 'TUNZY-MD '}*  
-Version: *${settings.version || '1.0.0'}*
-by ${settings.botOwner || 'TUNZY'}
-YouTube : ${global.ytch}
+|✦ ${settings.botName || 'TUNZY-MD '}*  
+|✦ Version: *${settings.version || '1.0.0'}*
+|✦ by ${settings.botOwner || 'TUNZY'}
+|✦ YouTube : ${global.ytch}
 ━━━━━━━━━━━━━━━━━┈⊷
 ╭━━〔 📌 CORE COMMANDS 〕━━┈⊷
 │  ✪ .menu / .help
