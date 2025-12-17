@@ -5,210 +5,208 @@ const path = require('path');
 async function helpCommand(sock, chatId, message) {
     const helpMessage = `
 ━━━━━━━━━━━━━━━━━┈⊷
-┃✮│➣ *🌹 ${settings.botName || 'TUNZY-MD'}*  
-┃✮│➣ Version: *${settings.version || '1.0.0'}*
-➣ by ${settings.botOwner || 'TUNZY x CODEBREAKER'}
-➣ YT : ${global.ytch}
+ ${settings.botName || 'TUNZY-MD '}*  
+Version: *${settings.version || '1.0.0'}*
+by ${settings.botOwner || 'TUNZY'}
+YouTube : ${global.ytch}
 ━━━━━━━━━━━━━━━━━┈⊷
-
-╭━━〔𝙶𝙴𝙽𝙴𝚁𝙰𝙻 𝙼𝙴𝙽𝚄 〕━┈⊷
-┃➣ .help / .menu
-┃➣ .ping
-┃➣ .alive
-┃➣ .tts <text>
-┃➣ .owner
-┃➣ .joke
-┃➣ .quote
-┃➣ .fact
-┃➣ .news
-┃➣ .attp <text>
-┃➣ .weather <city>
-┃➣ .lyrics <song title>
-┃➣ .8ball <question>
-┃➣ .groupinfo
-┃➣ .staff / .admins
-┃➣ .vv
-┃➣ .trt <text> <lang>
-┃➣ .ss <link>
-┃➣ .jid
-┃➣ .url
+╭━━〔 📌 CORE COMMANDS 〕━━┈⊷
+│  ✪ .menu / .help
+│  ✪ .ping
+│  ✪ .alive
+│  ✪ .owner
+│  ✪ .jid
+│  ✪ .url
+│  ✪ .tts <text>
+│  ✪ .joke
+│  ✪ .quote
+│  ✪ .fact
+│  ✪ .news
+│  ✪ .weather <city>
+│  ✪ .lyrics <song>
+│  ✪ .8ball <question>
+│  ✪ .groupinfo
+│  ✪ .admins / .staff
+│  ✪ .vv
+│  ✪ .trt <text> <lang>
+│  ✪ .ss <link>
+│  ✪ .attp <text>
 ╰━━━━━━━━━━━━━━━━━┈⊷
 
-╭━━━〔𝙰𝙳𝙼𝙸𝙽 𝙼𝙴𝙽𝚄 〕━━┈⊷
-┃➣ .ban 
-┃➣ .promote
-┃➣ .demote
-┃➣ .mute
-┃➣ .unmute
-┃➣ .del
-┃➣ .kick
-┃➣ .warnings
-┃➣ .warn
-┃➣ .antilink
-┃➣ .antibadword
-┃➣ .clear
-┃➣ .tag
-┃➣ .tagall
-┃➣ .tagnotadmin
-┃➣ .hidetag
-┃➣ .chatbot
-┃➣ .resetlink
-┃➣ .antitag
-┃➣ .welcome 
-┃➣ .goodbye
-┃➣ .setgdesc <description>
-┃➣ .setgname <new name>
-┃➣ .setgpp
-┃➣ .accept all
+╭━━〔 🛡️ GROUP ADMINISTRATION 〕━━┈⊷
+│  ✪ .ban
+│  ✪ .kick
+│  ✪ .mute / .unmute
+│  ✪ .promote / .demote
+│  ✪ .del
+│  ✪ .warn
+│  ✪ .warnings
+│  ✪ .clear
+│  ✪ .tag
+│  ✪ .tagall
+│  ✪ .tagnotadmin
+│  ✪ .hidetag
+│  ✪ .antilink
+│  ✪ .antibadword
+│  ✪ .antitag
+│  ✪ .chatbot
+│  ✪ .welcome
+│  ✪ .goodbye
+│  ✪ .resetlink
+│  ✪ .setgname <name>
+│  ✪ .setgdesc <desc>
+│  ✪ .setgpp
+│  ✪ .accept all
 ╰━━━━━━━━━━━━━━━━━┈⊷
 
-╭━━━〔𝙾𝚆𝙽𝙴𝚁 𝙼𝙴𝙽𝚄 〕━━┈⊷
-┃➣ .mode (public/self>
-┃➣ .clearsession
-┃➣ .antidelete
-┃➣ .cleartmp
-┃➣ .update
-┃➣ .settings
-┃➣ .setpp <reply to image>
-┃➣ .autoreact
-┃➣ .autostatus
-┃➣ .autostatus react
-┃➣ .autoread
-┃➣ .autotyping
-┃➣ .anticall
-┃➣ .pmblocker
-┃➣ .pmblocker setmsg
-┃➣ .setmention <reply 2 msg>
-┃➣ .mention
+╭━━〔 👑 OWNER CONTROL PANEL 〕━━┈⊷
+│  ✪ .mode <public/self>
+│  ✪ .update
+│  ✪ .settings
+│  ✪ .clearsession
+│  ✪ .cleartmp
+│  ✪ .antidelete
+│  ✪ .anticall
+│  ✪ .setpp <reply image>
+│  ✪ .setmention <reply msg>
+│  ✪ .mention
+│  ✪ .autoread
+│  ✪ .autoreact
+│  ✪ .autotyping
+│  ✪ .autostatus
+│  ✪ .autostatus react
+│  ✪ .pmblocker
+│  ✪ .pmblocker setmsg
 ╰━━━━━━━━━━━━━━━━━┈⊷
 
-╭━〔IMG/STICKER MENU〕━⊷
-┃➣ .blur <reply to image>
-┃➣ .simage <reply to sticker>
-┃➣ .removebg
-┃➣ .sticker
-┃➣ .tgsticker
-┃➣ .crop
-┃➣ .meme
-┃➣ .take 
-┃➣ .emojimix
-┃➣ .igs <insta link>
-┃➣ .igsc <insta link>
-┃➣ .hd<reply to image>
+╭━━〔 🖼️ MEDIA & STICKERS 〕━━┈⊷
+│  ✪ .sticker
+│  ✪ .tgsticker
+│  ✪ .simage <reply sticker>
+│  ✪ .blur <reply image>
+│  ✪ .crop
+│  ✪ .removebg
+│  ✪ .meme
+│  ✪ .take
+│  ✪ .emojimix
+│  ✪ .igs <insta link>
+│  ✪ .igsc <insta link>
+│  ✪ .hd <reply image>
 ╰━━━━━━━━━━━━━━━━━┈⊷
 
-╭━━━〔PIES MENU 〕━━┈⊷
-┃➣ .pies <country>
-┃➣ .japan
-┃➣ .korean
-┃➣ .indonesia
-┃➣ .china
-┃➣ .hijab
+╭━━〔 🌍 IMAGE SEARCH (PIES) 〕━━┈⊷
+│  ✪ .pies <country>
+│  ✪ .japan
+│  ✪ .korean
+│  ✪ .indonesia
+│  ✪ .china
+│  ✪ .hijab
 ╰━━━━━━━━━━━━━━━━━┈⊷
 
-╭━━━〔 GAME MENU 〕━━┈⊷
-┃➣ .tictactoe @user
-┃➣ .hangman
-┃➣ .guess <letter>
-┃➣ .trivia
-┃➣ .answer <answer>
-┃➣ .truth
-┃➣ .dare
+╭━━〔 🎮 GAMES & ENTERTAINMENT 〕━━┈⊷
+│  ✪ .tictactoe @user
+│  ✪ .hangman
+│  ✪ .guess <letter>
+│  ✪ .trivia
+│  ✪ .answer <answer>
+│  ✪ .truth
+│  ✪ .dare
 ╰━━━━━━━━━━━━━━━━━┈⊷
 
-╭━━━〔 AI MENU 〕━━┈⊷ 
-┃➣ .gpt <question>
-┃➣ .gemini <question>
-┃➣ .imagine <question>
-┃➣ .flux <question>
-┃➣ .sora <question>
+╭━━〔 🤖 AI INTELLIGENCE HUB 〕━━┈⊷
+│  ✪ .gpt <question>
+│  ✪ .gemini <question>
+│  ✪ .imagine <prompt>
+│  ✪ .flux <prompt>
+│  ✪ .sora <prompt>
 ╰━━━━━━━━━━━━━━━━━┈⊷
 
-╭━━━〔 GIT MENU 〕━━┈⊷
-┃➣ .git
-┃➣ .github
-┃➣ .sc
-┃➣ .script
-┃➣ .repo
+╭━━〔 💻 SOURCE & REPOSITORY 〕━━┈⊷
+│  ✪ .git
+│  ✪ .github
+│  ✪ .repo
+│  ✪ .sc
+│  ✪ .script
 ╰━━━━━━━━━━━━━━━━━┈⊷
 
-╭━━━〔 AI MENU〕━━┈⊷
-┃➣ .nom
-┃➣ .poke
-┃➣ .cry
-┃➣ .kiss
-┃➣ .pat
-┃➣ .hug
-┃➣ .wink
-┃➣ .facepalm
+╭━━〔 🎭 REACTIONS & EMOTES 〕━━┈⊷
+│  ✪ .nom
+│  ✪ .poke
+│  ✪ .cry
+│  ✪ .kiss
+│  ✪ .pat
+│  ✪ .hug
+│  ✪ .wink
+│  ✪ .facepalm
 ╰━━━━━━━━━━━━━━━━━┈⊷
 
-╭━━━〔 MISC MENU 〕
-┃➣ .heart
-┃➣ .horny
-┃➣ .lgbt
-┃➣ .circle
-┃➣ .lolice
-┃➣ .its-so-stupid
-┃➣ .namecard
-┃➣ .oogway
-┃➣ .tweet
-┃➣ .ytcomment
-┃➣ .comrade 
-┃➣ .gay
-┃➣ .glass
-┃➣ .jail
-┃➣ .passed
-┃➣ .triggered 
+╭━━〔 🎨 EFFECTS & GENERATORS 〕━━┈⊷
+│  ✪ .heart
+│  ✪ .horny
+│  ✪ .lgbt
+│  ✪ .circle
+│  ✪ .lolice
+│  ✪ .its-so-stupid
+│  ✪ .namecard
+│  ✪ .oogway
+│  ✪ .tweet
+│  ✪ .ytcomment
+│  ✪ .comrade
+│  ✪ .gay
+│  ✪ .glass
+│  ✪ .jail
+│  ✪ .passed
+│  ✪ .triggered
 ╰━━━━━━━━━━━━━━━━━┈⊷
 
-╭━━━〔 FUN MENU 〕━━┈⊷
-┃➣ .compliment @user
-┃➣ .insult @user
-┃➣ .flirt
-┃➣ .shayari
-┃➣ .goodnight
-┃➣ .roseday
-┃➣ .character @user
-┃➣ .wasted @user
-┃➣ .ship @user
-┃➣ .simp @user
-┃➣ .stupid @user [txt] 
+╭━━〔 😄 FUN & SOCIAL 〕━━┈⊷
+│  ✪ .compliment @user
+│  ✪ .insult @user
+│  ✪ .flirt
+│  ✪ .shayari
+│  ✪ .goodnight
+│  ✪ .roseday
+│  ✪ .character @user
+│  ✪ .wasted @user
+│  ✪ .ship @user
+│  ✪ .simp @user
+│  ✪ .stupid @user <text>
 ╰━━━━━━━━━━━━━━━━━┈⊷
 
-╭━〔 TXT MAKER MENU〕━┈⊷
-┃➣ .metalic <txt>
-┃➣ .ice <txt>
-┃➣ .snow <txt
-┃➣ .impressive 
-┃➣ .matrix <txt>
-┃➣ .light <txt>
-┃➣ .neon <txt>
-┃➣ .devil <txt>
-┃➣ .purple <txt>
-┃➣ .thunder <txt>
-┃➣ .hacker <txt>
-┃➣ .sand <txt>
-┃➣ .leaves <txt>
-┃➣ .1917 <txt>
-┃➣ .arena <txt>
-┃➣ .blackpink <txt>
-┃➣ .glitch <txt>
-┃➣ .fire <txt>
-╰━━━━━━━━━━━━━━━━┈⊷
-
-╭━━〔 DOWNLOAD MENU 〕━━┈⊷
-┃➣ .song <song name>
-┃➣ .play <song name>
-┃➣ .spotify <song name> 
-┃➣ .instagram <link>
-┃➣ .facebook <link>
-┃➣ .tiktok <link>
-┃➣ .video <song
+╭━━〔 ✍️ TEXT DESIGNER 〕━━┈⊷
+│  ✪ .metalic
+│  ✪ .ice
+│  ✪ .snow
+│  ✪ .impressive
+│  ✪ .matrix
+│  ✪ .light
+│  ✪ .neon
+│  ✪ .devil
+│  ✪ .purple
+│  ✪ .thunder
+│  ✪ .hacker
+│  ✪ .sand
+│  ✪ .leaves
+│  ✪ .1917
+│  ✪ .arena
+│  ✪ .blackpink
+│  ✪ .glitch
+│  ✪ .fire
 ╰━━━━━━━━━━━━━━━━━┈⊷
-╭━━━━〔 𝚄𝙿𝙳𝙰𝚃𝙴𝚂 〕━━━┈⊷
-➣ Join Channel 👇👇
-━━━━━━━━━━━━━━━━━┈⊷`;
+
+╭━━〔 ⬇️ MEDIA DOWNLOADS 〕━━┈⊷
+│  ✪ .song <name>
+│  ✪ .play <name>
+│  ✪ .spotify <name>
+│  ✪ .video <name>
+│  ✪ .instagram <link>
+│  ✪ .facebook <link>
+│  ✪ .tiktok <link>
+╰━━━━━━━━━━━━━━━━━┈⊷
+
+╭━━〔 🔔 SYSTEM UPDATES 〕━━┈⊷
+│  ✪ Join Official Channel 👇👇
+╰━━━━━━━━━━━━━━━━━┈⊷`;
 
     try {
         const imagePath = path.join(__dirname, '../assets/bot_image.jpg');
