@@ -21,7 +21,7 @@ function formatTime(seconds) {
 async function pingCommand(sock, chatId, message) {
     try {
         const start = Date.now();
-        await sock.sendMessage(chatId, { text: 'Pong!' }, { quoted: message });
+        // Just measure the time without sending a message
         const end = Date.now();
         const ping = Math.round((end - start) / 2);
 
@@ -29,8 +29,8 @@ async function pingCommand(sock, chatId, message) {
         const uptimeFormatted = formatTime(uptimeInSeconds);
 
         const botInfo = `
-✪ Pong 🏓 ${ping} ms_
-✪ Uptime ${uptimeFormatted}`.trim();
+*Pong 🏓 ${ping} ms...*
+*Uptime ${uptimeFormatted}*`.trim();
 
         // Reply to the original message with the bot info
         await sock.sendMessage(chatId, { text: botInfo }, { quoted: message });
