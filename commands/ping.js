@@ -29,14 +29,11 @@ async function pingCommand(sock, chatId, message) {
         const uptimeFormatted = formatTime(uptimeInSeconds);
 
         const botInfo = `
-╭━━〔 *_TUNZY-MD_* 〕━━┈⊷
-┃✮│➣ Ping: ${ping} ms
-┃✮│➣ Uptime: ${uptimeFormatted}
-┃✮│➣ Version: v${settings.version}
-╰━━━━━━━━━━━━━━━━━┈⊷`.trim();
+✪ Pong 🏓 ${ping} ms_
+✪ Uptime ${uptimeFormatted}`.trim();
 
         // Reply to the original message with the bot info
-        await sock.sendMessage(chatId, { text: botInfo},{ quoted: message });
+        await sock.sendMessage(chatId, { text: botInfo }, { quoted: message });
 
     } catch (error) {
         console.error('Error in ping command:', error);
