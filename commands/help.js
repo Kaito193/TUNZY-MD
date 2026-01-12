@@ -218,7 +218,7 @@ ${readMore}
 
     // Check if bot_picture.jpg exists
     const imagePath = path.join(__dirname, '../assets/bot_picture.jpg');
-    
+
     // Context info for forwarded appearance
     const contextInfo = {
         forwardingScore: 1,
@@ -228,31 +228,36 @@ ${readMore}
             newsletterName: 'TUNZY-MD'
         }
     };
-    
+
     try {
-        // Send image with caption if exists
+        // Send image with caption if exists - REPLIED to the original .menu message
         if (fs.existsSync(imagePath)) {
-            // Send image with caption (removed jpegThumbnail but kept contextInfo)
+            // Send image with caption and reply to the original message
             await sock.sendMessage(chatId, {
                 image: { url: imagePath },
                 caption: caption.trim(),
                 mimetype: 'image/jpeg',
                 contextInfo: contextInfo
+            }, {
+                quoted: message  // This makes it a reply to the .menu command
             });
         } else {
-            // Send only text if image doesn't exist
+            // Send only text if image doesn't exist - REPLIED to the original .menu message
             await sock.sendMessage(chatId, {
                 text: caption,
                 contextInfo: contextInfo
+            }, {
+                quoted: message  // This makes it a reply to the .menu command
             });
         }
     } catch (error) {
         console.error('Error sending menu:', error);
-        // If image fails to send, try sending just the text
+        // If image fails to send, try sending just the text - as a reply
         await sock.sendMessage(chatId, {
             text: `⚠️ Failed to load image\n\n${caption}`,
-            contextInfo: contextInfo,
-            quoted: message
+            contextInfo: contextInfo
+        }, {
+            quoted: message  // Reply to the .menu command even on error
         });
     }
 }
