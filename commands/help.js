@@ -9,18 +9,14 @@ async function helpCommandEdited(sock, chatId, message) {
     // 1️⃣ Send a temporary loading message
     const loadingMsg = await sock.sendMessage(
         chatId,
-        { text: 'Loading menu...' },
+        { text: '⏳ Loading menu...' },
         { quoted: message }
     );
 
-    // 2️⃣ Delay for effect
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // 3️⃣ Delete loading message
-    await sock.sendMessage(chatId, { delete: loadingMsg.key });
-
-    // 4️⃣ Check if bot_picture.jpg exists
+    // 2️⃣ Check if bot_picture.jpg exists
     const imagePath = path.join(__dirname, '../assets/images/bot_picture.jpg');
+    
+    // Prepare caption
     const caption = `
 ┏━━━━━━━━━━━━━━━━━━━
 ┃ TUNZY-MD
@@ -230,36 +226,44 @@ ${readMore}
 ┗━━━━━━━━━━━━━━━━━━
     `;
 
-    // 5️⃣ Send image with caption if exists
-    if (fs.existsSync(imagePath)) {
-        // Send HD image with caption
-        await sock.sendMessage(chatId, {
-            image: { url: imagePath },
-            caption: caption,
-            mimetype: 'image/jpeg',
-            // HD quality settings
-            jpegThumbnail: fs.readFileSync(imagePath),
-            contextInfo: {
-                forwardingScore: 1,
-                isForwarded: true,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363422591784062@newsletter',
-                    newsletterName: 'TUNZY-MD'
+    try {
+        // 3️⃣ Send image with caption if exists
+        if (fs.existsSync(imagePath)) {
+            // Send HD image with caption
+            await sock.sendMessage(chatId, {
+                image: { url: imagePath },
+                caption: caption.trim(),
+                mimetype: 'image/jpeg',
+                jpegThumbnail: fs.readFileSync(imagePath),
+                contextInfo: {
+                    forwardingScore: 1,
+                    isForwarded: true,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '120363422591784062@newsletter',
+                        newsletterName: 'TUNZY-MD'
+                    }
                 }
-            }
-        });
-    } else {
-        // Send only text if image doesn't exist
-        await sock.sendMessage(chatId, {
-            text: caption,
-            contextInfo: {
-                forwardingScore: 1,
-                isForwarded: true,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363422591784062@newsletter',
-                    newsletterName: 'TUNZY-MD'
+            });
+        } else {
+            // Send only text if image doesn't exist
+            await sock.sendMessage(chatId, {
+                text: caption,
+                contextInfo: {
+                    forwardingScore: 1,
+                    isForwarded: true,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '120363422591784062@newsletter',
+                        newsletterName: 'TUNZY-MD'
+                    }
                 }
-            }
+            });
+        }
+    } catch (error) {
+        console.error('Error sending menu:', error);
+        // If image fails to send, try sending just the text
+        await sock.sendMessage(chatId, {
+            text: `⚠️ Failed to load image\n\n${caption}`,
+            quoted: message
         });
     }
 }
