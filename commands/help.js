@@ -1,23 +1,25 @@
 const settings = require('../settings');
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
 
 async function helpCommandEdited(sock, chatId, message) {
-    // Hidden "read more" to collapse WhatsApp message
     const readMore = String.fromCharCode(8206).repeat(4000);
-
-    // 1️⃣ Send a temporary loading message
-    const loadingMsg = await sock.sendMessage(
-        chatId,
-        { text: '⏳ Loading menu...' },
-        { quoted: message }
-    );
-
-    // 2️⃣ Check if bot_picture.jpg exists
     const imagePath = path.join(__dirname, '../assets/bot_picture.jpg');
-    
-    // Prepare caption
-    const caption = `
+
+    // Send loading message immediately
+    let loadingMsg;
+    try {
+        loadingMsg = await sock.sendMessage(
+            chatId,
+            { text: '⏳ Loading menu...' },
+            { quoted: message }
+        );
+    } catch (error) {
+        console.error('Failed to send loading message:', error);
+    }
+
+    // Prepare caption in background while checking image
+    const captionPromise = Promise.resolve(`
 ┏━━━━━━━━━━━━━━━━━━━
 ┃ TUNZY-MD
 ┃ Version : 1.0.0
@@ -224,47 +226,59 @@ ${readMore}
 ┏━[SYSTEM UPDATE]━━━━
 ┃ Join Official Channel 👇
 ┗━━━━━━━━━━━━━━━━━━
-    `;
+    `.trim());
 
     try {
-        // 3️⃣ Send image with caption if exists
-        if (fs.existsSync(imagePath)) {
-            // Send HD image with caption
+        // Check if image exists (non-blocking)
+        let imageExists = false;
+        try {
+            await fs.access(imagePath);
+            imageExists = true;
+        } catch {
+            imageExists = false;
+        }
+
+        const caption = await captionPromise;
+
+        if (imageExists) {
+            // Send image with caption (don't use jpegThumbnail for faster sending)
             await sock.sendMessage(chatId, {
                 image: { url: imagePath },
-                caption: caption.trim(),
+                caption: caption,
                 mimetype: 'image/jpeg',
-                jpegThumbnail: fs.readFileSync(imagePath),
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363422591784062@newsletter',
-                        newsletterName: 'TUNZY-MD'
-                    }
-                }
+                // Remove contextInfo if not necessary for speed
             });
         } else {
             // Send only text if image doesn't exist
             await sock.sendMessage(chatId, {
                 text: caption,
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363422591784062@newsletter',
-                        newsletterName: 'TUNZY-MD'
-                    }
-                }
+                // Remove contextInfo if not necessary for speed
             });
         }
+
+        // Delete loading message if sent successfully
+        if (loadingMsg) {
+            await sock.sendMessage(chatId, {
+                delete: loadingMsg.key
+            }).catch(e => console.log('Could not delete loading message:', e));
+        }
+
     } catch (error) {
         console.error('Error sending menu:', error);
-        // If image fails to send, try sending just the text
+        
+        // If image fails to send, send just the text
+        const caption = await captionPromise;
         await sock.sendMessage(chatId, {
-            text: `⚠️ Failed to load image\n\n${caption}`,
+            text: caption,
             quoted: message
         });
+        
+        // Delete loading message on error too
+        if (loadingMsg) {
+            await sock.sendMessage(chatId, {
+                delete: loadingMsg.key
+            }).catch(e => console.log('Could not delete loading message:', e));
+        }
     }
 }
 
