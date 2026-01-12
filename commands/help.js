@@ -14,7 +14,7 @@ async function helpCommandEdited(sock, chatId, message) {
     );
 
     // 2️⃣ Check if bot_picture.jpg exists
-    const imagePath = path.join(__dirname, '../assets/images/bot_picture.jpg');
+    const imagePath = path.join(__dirname, '../assets/bot_picture.jpg');
     
     // Prepare caption
     const caption = `
