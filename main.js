@@ -1,13 +1,4 @@
-// Import the unified module
-const { songCommand, playCommand } = require('./path/to/mediaDownloader.js');
 
-// Or if you want a single command:
-const { mediaDownloadCommand } = require('./path/to/mediaDownloader.js');
-
-// Register commands
-if (command === 'song' || command === 'play' || command === 'music') {
-    await mediaDownloadCommand(sock, chatId, message, args, command);
-}
 // 🧹 Fix for ENOSPC / temp overflow in hosted panels
 const fs = require('fs');
 const path = require('path');
