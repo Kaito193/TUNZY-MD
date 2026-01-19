@@ -176,56 +176,96 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
 
 async function restartProcess(sock, chatId, message) {
     try {
-        await sock.sendMessage(chatId, { text: '✅ Update complete! Restarting…' }, { quoted: message });
+        // Send restart message before exiting
+        await sock.sendMessage(chatId, { text: '🔄 Restarting process...' }, { quoted: message });
     } catch {}
+    
+    // Delay to allow message to send
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Try different restart methods
     try {
-        // Preferred: PM2
+        // Try PM2 first
         await run('pm2 restart all');
         return;
     } catch {}
-    // Panels usually auto-restart when the process exits.
-    // Exit after a short delay to allow the above message to flush.
-    setTimeout(() => {
-        process.exit(0);
-    }, 500);
+    
+    try {
+        // Try npm start
+        await run('npm start');
+        return;
+    } catch {}
+    
+    // If all else fails, exit and let hosting service restart
+    process.exit(0);
 }
 
 async function updateCommand(sock, chatId, message, zipOverride) {
     const senderId = message.key.participant || message.key.remoteJid;
     const isOwner = await isOwnerOrSudo(senderId, sock, chatId);
-    
+
     if (!message.key.fromMe && !isOwner) {
         await sock.sendMessage(chatId, { text: 'Only bot owner or sudo can use .update' }, { quoted: message });
         return;
     }
+    
+    let updatingMsg;
     try {
-        // Minimal UX
-        await sock.sendMessage(chatId, { text: '🔄 Updating the bot, please wait…' }, { quoted: message });
+        // Send initial updating message
+        updatingMsg = await sock.sendMessage(chatId, { text: '🔄 Updating...' }, { quoted: message });
+        
         if (await hasGitRepo()) {
-            // silent
+            // Git update
             const { oldRev, newRev, alreadyUpToDate, commits, files } = await updateViaGit();
-            // Short message only: version info
-            const summary = alreadyUpToDate ? `✅ Already up to date: ${newRev}` : `✅ Updated to ${newRev}`;
-            console.log('[update] summary generated');
-            // silent
+            
+            if (alreadyUpToDate) {
+                // Update the message
+                await sock.sendMessage(chatId, { 
+                    text: '✅ Already up to date!' 
+                }, { quoted: message });
+                return;
+            }
+            
+            // Install dependencies
             await run('npm install --no-audit --no-fund');
+            
+            // Update message to show update complete
+            await sock.sendMessage(chatId, { 
+                text: '✅ Update done ✅\nBot is now restarting...' 
+            }, { quoted: message });
+            
         } else {
+            // ZIP update
             const { copiedFiles } = await updateViaZip(sock, chatId, message, zipOverride);
-            // silent
+            
+            // Update message to show update complete
+            await sock.sendMessage(chatId, { 
+                text: '✅ Update done ✅\nBot is now restarting...' 
+            }, { quoted: message });
         }
-        try {
-            const v = require('../settings').version || '';
-            await sock.sendMessage(chatId, { text: `✅ Update done. Restarting…` }, { quoted: message });
-        } catch {
-            await sock.sendMessage(chatId, { text: '✅ Restared Successfully\n Type .ping to check latest version.' }, { quoted: message });
-        }
+        
+        // Wait a moment before showing restart message
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Send restarting message
+        await sock.sendMessage(chatId, { 
+            text: '🔄 Restarting bot...' 
+        }, { quoted: message });
+        
+        // Wait for message to send
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Restart the process
         await restartProcess(sock, chatId, message);
+        
     } catch (err) {
         console.error('Update failed:', err);
-        await sock.sendMessage(chatId, { text: `❌ Update failed:\n${String(err.message || err)}` }, { quoted: message });
+        try {
+            await sock.sendMessage(chatId, { 
+                text: `❌ Update failed:\n${String(err.message || err)}` 
+            }, { quoted: message });
+        } catch {}
     }
 }
 
 module.exports = updateCommand;
-
-
