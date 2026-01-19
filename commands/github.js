@@ -5,7 +5,9 @@ const path = require('path');
 
 async function githubCommand(sock, chatId, message) {
   try {
-    const res = await fetch('https://api.github.com/repos/tunzy-shop/TUNZY-MD');
+    // Main repository URL
+    const repoUrl = 'https://api.github.com/repos/tunzy-shop/TUNZY-MD';
+    const res = await fetch(repoUrl);
     if (!res.ok) throw new Error('Error fetching repository data');
     const json = await res.json();
 
@@ -14,7 +16,7 @@ async function githubCommand(sock, chatId, message) {
     txt += `✩  *Watchers* : ${json.watchers_count}\n`;
     txt += `✩  *Size* : ${(json.size / 1024).toFixed(2)} MB\n`;
     txt += `✩  *Last Updated* : ${moment(json.updated_at).format('DD/MM/YY - HH:mm:ss')}\n`;
-    txt += `✩  *URL* : ${json.html_url}\n`;
+    txt += `✩  *URL* : https://github.com/tunzy-shop/TUNZY-MD/fork\n`; // Changed to your desired URL
     txt += `✩  *Forks* : ${json.forks_count}\n`;
     txt += `✩  *Stars* : ${json.stargazers_count}\n\n`;
     txt += `*_TUNZY-MD_*`;
@@ -51,13 +53,15 @@ async function githubCommand(sock, chatId, message) {
     }, { 
       quoted: message 
     });
-    
+
   } catch (error) {
     console.error('Error in github command:', error);
-    
+
     // Try to send without image if image loading fails
     try {
-      const res = await fetch('https://api.github.com/repos/tunzy-shop/TUNZY-MD/fork');
+      // Still fetch the main repository data, not the fork endpoint
+      const repoUrl = 'https://api.github.com/repos/tunzy-shop/TUNZY-MD';
+      const res = await fetch(repoUrl);
       if (res.ok) {
         const json = await res.json();
         let txt = `*乂  TUNZY - MD 乂*\n\n`;
@@ -65,13 +69,15 @@ async function githubCommand(sock, chatId, message) {
         txt += `✩  *Watchers* : ${json.watchers_count}\n`;
         txt += `✩  *Size* : ${(json.size / 1024).toFixed(2)} MB\n`;
         txt += `✩  *Last Updated* : ${moment(json.updated_at).format('DD/MM/YY - HH:mm:ss')}\n`;
-        txt += `✩  *URL* : ${json.html_url}\n`;
+        txt += `✩  *URL* : https://github.com/tunzy-shop/TUNZY-MD/fork\n`; // Changed to your desired URL
         txt += `✩  *Forks* : ${json.forks_count}\n`;
         txt += `✩  *Stars* : ${json.stargazers_count}\n\n`;
         txt += `*_TUNZY-MD_*\n\n`;
         txt += `⚠️ *Note:* Could not load repo_image.jpg`;
-        
+
         await sock.sendMessage(chatId, { text: txt }, { quoted: message });
+      } else {
+        throw new Error(`HTTP error: ${res.status}`);
       }
     } catch (fetchError) {
       await sock.sendMessage(chatId, { 
