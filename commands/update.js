@@ -5,9 +5,6 @@ const https = require('https');
 const settings = require('../settings');
 const isOwnerOrSudo = require('../lib/isOwner');
 
-// Store for tracking update messages to edit
-const updateMessages = new Map();
-
 function run(cmd) {
     return new Promise((resolve, reject) => {
         exec(cmd, { windowsHide: true }, (err, stdout, stderr) => {
@@ -177,62 +174,20 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
     return { copiedFiles: copied };
 }
 
-// Function to edit message
-async function editMessage(sock, chatId, messageId, newText) {
+async function restartProcess(sock, chatId, message) {
     try {
-        await sock.relayMessage(chatId, {
-            protocolMessage: {
-                key: {
-                    remoteJid: chatId,
-                    id: messageId,
-                    participant: chatId.includes('@g.us') ? sock.user.id.split(':')[0] + '@s.whatsapp.net' : undefined
-                },
-                type: 14, // 14 is for message edit
-                editedMessage: {
-                    conversation: newText
-                }
-            }
-        }, {});
-        return true;
-    } catch (error) {
-        console.error('Failed to edit message:', error);
-        // Fallback to sending new message if edit fails
-        await sock.sendMessage(chatId, { text: newText });
-        return false;
-    }
-}
-
-async function restartProcess(sock, chatId, message, updatingMsg) {
-    try {
-        // Edit message to show restarting
-        if (updatingMsg && updatingMsg.key && updatingMsg.key.id) {
-            await editMessage(sock, chatId, updatingMsg.key.id, '🔄 Restarting bot...');
-        } else {
-            await sock.sendMessage(chatId, { text: '🔄 Restarting bot...' }, { quoted: message });
-        }
+        await sock.sendMessage(chatId, { text: '✅ Update complete! Restarting…' }, { quoted: message });
     } catch {}
-    
-    // Clear the update message from storage
-    updateMessages.delete(chatId);
-    
-    // Add delay to allow message editing
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Try different restart methods
     try {
-        // Try PM2 first
+        // Preferred: PM2
         await run('pm2 restart all');
         return;
     } catch {}
-    
-    try {
-        // Try npm start
-        await run('npm start');
-        return;
-    } catch {}
-    
-    // If all else fails, exit and let hosting service restart
-    process.exit(0);
+    // Panels usually auto-restart when the process exits.
+    // Exit after a short delay to allow the above message to flush.
+    setTimeout(() => {
+        process.exit(0);
+    }, 500);
 }
 
 async function updateCommand(sock, chatId, message, zipOverride) {
@@ -243,59 +198,31 @@ async function updateCommand(sock, chatId, message, zipOverride) {
         await sock.sendMessage(chatId, { text: 'Only bot owner or sudo can use .update' }, { quoted: message });
         return;
     }
-    
-    let updatingMsg;
     try {
-        // Send initial updating message
-        updatingMsg = await sock.sendMessage(chatId, { text: '🔄 Updating...' }, { quoted: message });
-        
-        // Store the message for editing
-        updateMessages.set(chatId, updatingMsg.key.id);
-        
+        // Minimal UX
+        await sock.sendMessage(chatId, { text: '🔄 Updating the bot, please wait…' }, { quoted: message });
         if (await hasGitRepo()) {
-            // Git update
+            // silent
             const { oldRev, newRev, alreadyUpToDate, commits, files } = await updateViaGit();
-            
-            if (alreadyUpToDate) {
-                // Edit the message
-                await editMessage(sock, chatId, updatingMsg.key.id, '✅ Already up to date!');
-                updateMessages.delete(chatId);
-                return;
-            }
-            
-            // Install dependencies
+            // Short message only: version info
+            const summary = alreadyUpToDate ? `✅ Already up to date: ${newRev}` : `✅ Updated to ${newRev}`;
+            console.log('[update] summary generated');
+            // silent
             await run('npm install --no-audit --no-fund');
-            
-            // Edit message to show update complete
-            await editMessage(sock, chatId, updatingMsg.key.id, '✅ Update done ✅\nBot is not restarting...');
-            
         } else {
-            // ZIP update
             const { copiedFiles } = await updateViaZip(sock, chatId, message, zipOverride);
-            
-            // Edit message to show update complete
-            await editMessage(sock, chatId, updatingMsg.key.id, '✅ Update done ✅\nBot is not restarting...');
+            // silent
         }
-        
-        // Wait a moment before showing restart message
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Restart the process
-        await restartProcess(sock, chatId, message, updatingMsg);
-        
+        try {
+            const v = require('../settings').version || '';
+            await sock.sendMessage(chatId, { text: `✅ Update done. Restarting…` }, { quoted: message });
+        } catch {
+            await sock.sendMessage(chatId, { text: '✅ Restared Successfully\n Type .ping to check latest version.' }, { quoted: message });
+        }
+        await restartProcess(sock, chatId, message);
     } catch (err) {
         console.error('Update failed:', err);
-        try {
-            if (updatingMsg && updatingMsg.key && updatingMsg.key.id) {
-                await editMessage(sock, chatId, updatingMsg.key.id, `❌ Update failed:\n${String(err.message || err)}`);
-            } else {
-                await sock.sendMessage(chatId, { 
-                    text: `❌ Update failed:\n${String(err.message || err)}` 
-                }, { quoted: message });
-            }
-            // Clear from storage on error
-            updateMessages.delete(chatId);
-        } catch {}
+        await sock.sendMessage(chatId, { text: `❌ Update failed:\n${String(err.message || err)}` }, { quoted: message });
     }
 }
 
