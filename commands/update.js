@@ -5,6 +5,9 @@ const https = require('https');
 const settings = require('../settings');
 const isOwnerOrSudo = require('../lib/isOwner');
 
+// Store for tracking update messages to edit
+const updateMessages = new Map();
+
 function run(cmd) {
     return new Promise((resolve, reject) => {
         exec(cmd, { windowsHide: true }, (err, stdout, stderr) => {
@@ -174,14 +177,46 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
     return { copiedFiles: copied };
 }
 
-async function restartProcess(sock, chatId, message) {
+// Function to edit message
+async function editMessage(sock, chatId, messageId, newText) {
     try {
-        // Send restart message before exiting
-        await sock.sendMessage(chatId, { text: '🔄 Restarting process...' }, { quoted: message });
+        await sock.relayMessage(chatId, {
+            protocolMessage: {
+                key: {
+                    remoteJid: chatId,
+                    id: messageId,
+                    participant: chatId.includes('@g.us') ? sock.user.id.split(':')[0] + '@s.whatsapp.net' : undefined
+                },
+                type: 14, // 14 is for message edit
+                editedMessage: {
+                    conversation: newText
+                }
+            }
+        }, {});
+        return true;
+    } catch (error) {
+        console.error('Failed to edit message:', error);
+        // Fallback to sending new message if edit fails
+        await sock.sendMessage(chatId, { text: newText });
+        return false;
+    }
+}
+
+async function restartProcess(sock, chatId, message, updatingMsg) {
+    try {
+        // Edit message to show restarting
+        if (updatingMsg && updatingMsg.key && updatingMsg.key.id) {
+            await editMessage(sock, chatId, updatingMsg.key.id, '🔄 Restarting bot...');
+        } else {
+            await sock.sendMessage(chatId, { text: '🔄 Restarting bot...' }, { quoted: message });
+        }
     } catch {}
     
-    // Delay to allow message to send
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Clear the update message from storage
+    updateMessages.delete(chatId);
+    
+    // Add delay to allow message editing
+    await new Promise(resolve => setTimeout(resolve, 1500));
     
     // Try different restart methods
     try {
@@ -214,56 +249,52 @@ async function updateCommand(sock, chatId, message, zipOverride) {
         // Send initial updating message
         updatingMsg = await sock.sendMessage(chatId, { text: '🔄 Updating...' }, { quoted: message });
         
+        // Store the message for editing
+        updateMessages.set(chatId, updatingMsg.key.id);
+        
         if (await hasGitRepo()) {
             // Git update
             const { oldRev, newRev, alreadyUpToDate, commits, files } = await updateViaGit();
             
             if (alreadyUpToDate) {
-                // Update the message
-                await sock.sendMessage(chatId, { 
-                    text: '✅ Already up to date!' 
-                }, { quoted: message });
+                // Edit the message
+                await editMessage(sock, chatId, updatingMsg.key.id, '✅ Already up to date!');
+                updateMessages.delete(chatId);
                 return;
             }
             
             // Install dependencies
             await run('npm install --no-audit --no-fund');
             
-            // Update message to show update complete
-            await sock.sendMessage(chatId, { 
-                text: '✅ Update done ✅\nBot is now restarting...' 
-            }, { quoted: message });
+            // Edit message to show update complete
+            await editMessage(sock, chatId, updatingMsg.key.id, '✅ Update done ✅\nBot is not restarting...');
             
         } else {
             // ZIP update
             const { copiedFiles } = await updateViaZip(sock, chatId, message, zipOverride);
             
-            // Update message to show update complete
-            await sock.sendMessage(chatId, { 
-                text: '✅ Update done ✅\nBot is now restarting...' 
-            }, { quoted: message });
+            // Edit message to show update complete
+            await editMessage(sock, chatId, updatingMsg.key.id, '✅ Update done ✅\nBot is not restarting...');
         }
         
         // Wait a moment before showing restart message
         await new Promise(resolve => setTimeout(resolve, 1500));
         
-        // Send restarting message
-        await sock.sendMessage(chatId, { 
-            text: '🔄 Restarting bot...' 
-        }, { quoted: message });
-        
-        // Wait for message to send
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
         // Restart the process
-        await restartProcess(sock, chatId, message);
+        await restartProcess(sock, chatId, message, updatingMsg);
         
     } catch (err) {
         console.error('Update failed:', err);
         try {
-            await sock.sendMessage(chatId, { 
-                text: `❌ Update failed:\n${String(err.message || err)}` 
-            }, { quoted: message });
+            if (updatingMsg && updatingMsg.key && updatingMsg.key.id) {
+                await editMessage(sock, chatId, updatingMsg.key.id, `❌ Update failed:\n${String(err.message || err)}`);
+            } else {
+                await sock.sendMessage(chatId, { 
+                    text: `❌ Update failed:\n${String(err.message || err)}` 
+                }, { quoted: message });
+            }
+            // Clear from storage on error
+            updateMessages.delete(chatId);
         } catch {}
     }
 }
